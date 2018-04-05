@@ -28,12 +28,17 @@
             android:prompt="@string/period_prompt" />
     </LinearLayout>
 
-
     <Button
         android:id="@+id/mainButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/see_on_map" />
+
+    <Button
+        android:id="@+id/mainListButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/see_on_list" />
 
 
 

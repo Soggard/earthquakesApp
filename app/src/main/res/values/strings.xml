@@ -6,6 +6,8 @@
     <string name="magnitude_prompt">Choose a magnitude</string>
     <string name="period_prompt">Choose a period</string>
     <string name="see_on_map">See on map</string>
+    <string name="see_on_list">See on list</string>
+    <string name="seism_list">Liste des séismes</string>
 
     <string-array name="magnitude">
         <item>M1+</item>

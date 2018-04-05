@@ -46,6 +46,30 @@ class MainActivity : AppCompatActivity() {
                 putExtra(MapsActivity.EXTRA_TIME, time)
             })
         }
+
+        mainListButton.setOnClickListener {
+            val magnitude = when (mainMagnitudeSpinner.selectedItemPosition) {
+                0 -> "all"
+                1 -> "1.0"
+                2 -> "2.5"
+                3 -> "4.5"
+                4 -> "significant"
+                else -> throw Exception("Item unknown")
+            }
+
+            val time = when (mainTimeSpinner.selectedItemPosition) {
+                0 -> "hour"
+                1 -> "day"
+                2 -> "week"
+                3 -> "month"
+                else -> throw Exception("Item unknown")
+            }
+
+            startActivity(Intent(this, ListActivity::class.java).apply {
+                putExtra(ListActivity.EXTRA_MAGNITUDE, magnitude)
+                putExtra(ListActivity.EXTRA_TIME, time)
+            })
+        }
     }
 
 
