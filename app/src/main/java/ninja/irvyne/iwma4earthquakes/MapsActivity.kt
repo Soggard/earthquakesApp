@@ -13,6 +13,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import ninja.irvyne.iwma4earthquakes.api.EarthquakeService
 import ninja.irvyne.iwma4earthquakes.api.model.EarthquakeData
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -25,6 +27,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var mService: EarthquakeService
+    private lateinit var mExtraTime: String
+    private lateinit var mExtraMagnitude: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,18 +37,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        val magnitude = intent.getStringExtra("magnitude") ?: "all"
-        val time = intent.getStringExtra("time") ?: "day"
+        val mExtraMagnitude = intent.getStringExtra("magnitude") ?: "all"
+        val mExtraTime = intent.getStringExtra("time") ?: "day"
 
-        Log.d(TAG, "Magnitude is $magnitude and time is $time")
+        mService = Retrofit.Builder().apply {
+            baseUrl("https://earthquake.usgs.gov/")
+            addConverterFactory(GsonConverterFactory.create())
+            client(OkHttpClient.Builder()
+                    .addInterceptor(HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.HEADERS
+                    })
+                    .build())
 
-        mService = Retrofit.Builder()
-                .baseUrl("https://earthquake.usgs.gov/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(EarthquakeService::class.java)
+        }.build().create(EarthquakeService::class.java)
 
-        mService.listEarthquakes(magnitude = "significant", time = "hour").enqueue(object : Callback<EarthquakeData> {
+        mService.listEarthquakes(magnitude = mExtraMagnitude, time = mExtraTime).enqueue(object : Callback<EarthquakeData> {
             override fun onFailure(call: Call<EarthquakeData>?, t: Throwable?) {
                 Log.e(TAG, "response failed!")
                 if (t != null) throw t
@@ -57,13 +64,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     feature.geometry?.coordinates?.let {
                         val latitude = it[1]
                         val longitude = it[0]
+                        val color = when (feature.properties?.mag ?: 0.0) {
+                            in 0.0..1.5 -> BitmapDescriptorFactory.HUE_GREEN
+                            in 1.5..2.5 -> BitmapDescriptorFactory.HUE_YELLOW
+                            in 2.5..4.5 -> BitmapDescriptorFactory.HUE_ORANGE
+                            in 4.5..6.0 -> BitmapDescriptorFactory.HUE_RED
+                            else -> BitmapDescriptorFactory.HUE_CYAN
+                        }
+
 
                         mMap.addMarker(
                                 MarkerOptions()
                                 .position(LatLng(latitude, longitude))
                                 .title(feature.properties?.place ?: "No title")
                                 .icon(BitmapDescriptorFactory
-                                        .defaultMarker(BitmapDescriptorFactory.HUE_CYAN)))
+                                        .defaultMarker(color)))
                     }
                 }
 
