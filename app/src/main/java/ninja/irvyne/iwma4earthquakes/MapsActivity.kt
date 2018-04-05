@@ -8,6 +8,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import ninja.irvyne.iwma4earthquakes.api.EarthquakeService
@@ -29,9 +30,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        val magnitude = intent.getStringExtra("magnitude") ?: "all"
+        val time = intent.getStringExtra("time") ?: "day"
+
+        Log.d(TAG, "Magnitude is $magnitude and time is $time")
 
         mService = Retrofit.Builder()
                 .baseUrl("https://earthquake.usgs.gov/")
@@ -39,24 +44,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .build()
                 .create(EarthquakeService::class.java)
 
-        mService.listSignificantEarthquakes().enqueue(object : Callback<EarthquakeData> {
+        mService.listEarthquakes(magnitude = "significant", time = "hour").enqueue(object : Callback<EarthquakeData> {
             override fun onFailure(call: Call<EarthquakeData>?, t: Throwable?) {
-                Log.d("MapsActivity", "Response failed")
+                Log.e(TAG, "response failed!")
                 if (t != null) throw t
-                t?.let { throw it }
+                // t?.let { throw it }
             }
 
             override fun onResponse(call: Call<EarthquakeData>?, response: Response<EarthquakeData>?) {
 
-                response?.body()?.features?.forEach {
-                    it.geometry?.coordinates?.let {
+                response?.body()?.features?.forEach {feature ->
+                    feature.geometry?.coordinates?.let {
                         val latitude = it[1]
                         val longitude = it[0]
 
                         mMap.addMarker(
                                 MarkerOptions()
                                 .position(LatLng(latitude, longitude))
-                                .title("Marker in Sydney"))
+                                .title(feature.properties?.place ?: "No title")
+                                .icon(BitmapDescriptorFactory
+                                        .defaultMarker(BitmapDescriptorFactory.HUE_CYAN)))
                     }
                 }
 
@@ -80,11 +87,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         // Add a marker in Sydney and move the camera
         val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        //mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 8f))
     }
 
     companion object {
         private const val TAG = "MapsActivity"
+
+        const val EXTRA_MAGNITUDE = "magnitude"
+        const val EXTRA_TIME = "time"
     }
 }

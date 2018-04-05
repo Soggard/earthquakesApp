@@ -1,4 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
 <resources>
     <string name="app_name">IWMA4Earthquakes</string>
     <string name="title_activity_maps">Map</string>
+    <string name="magnitude_prompt">Choose a magnitude</string>
+    <string name="period_prompt">Choose a period</string>
+    <string name="see_on_map">See on map</string>
+
+    <string-array name="magnitude">
+        <item>M1+</item>
+        <item>M2.5+</item>
+        <item>M4.5+</item>
+        <item>Significant</item>
+    </string-array>
+
+    <string-array name="period">
+        <item>Day</item>
+        <item>Week</item>
+        <item>Month</item>
+    </string-array>
 </resources>
