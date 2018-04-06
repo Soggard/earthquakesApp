@@ -35,6 +35,10 @@ class EarthquakeAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val feature = myDataset[position]
         val color = when (feature.properties?.mag ?: 0.0) {
+            in 0.0..1.5 -> Color.GREEN
+            in 1.5..3.0 -> Color.YELLOW
+            in 3.0..4.5 -> Color.YELLOW
+            in 4.5..6.0 -> Color.RED
             else -> Color.RED
         }
 
